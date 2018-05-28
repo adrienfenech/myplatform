@@ -1,0 +1,65 @@
+doctype html
+html(lang='en')
+    head
+        meta(http-equiv='Content-Type', content='text/html; charset=UTF-8')
+        // Meta, title, CSS, favicons, etc.
+        meta(charset='utf-8')
+        meta(http-equiv='X-UA-Compatible', content='IE=edge')
+        meta(name='viewport', content='width=device-width, initial-scale=1')
+        title My Platform
+        link(href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet")
+        link(type="text/css" rel="stylesheet" href="/css/materialize.min.css"  media="screen,projection")
+        meta(name='viewport', content='width=device-width, initial-scale=1')
+    body.grey.lighten-5
+        main.row.valign-wrapper(style='min-height: 100vh')
+            .col.s12
+                .row
+                    .col.s12.m10.offset-m1.xl6.offset-xl3
+                        h4.col.s12.grey-text.text-darken-4 Chat
+                        #chat.col.s12
+                .row
+                    .col.s12
+                        .container
+                            .divider
+                .row
+                    .col.s12.m10.offset-m1.xl6.offset-xl3.valign-wrapper
+                        .input-field.col.s12
+                            input#compute(type='text')
+                            label(for='compute') What you gonna say ?
+                        a#btn.btn.waves-effect.waves-light
+                            i.material-icons gamepad
+
+            .fixed-action-btn
+                a#menu.btn-floating.btn-large.cyan(href='/')
+                    i.large.material-icons menu
+
+
+        script(type="text/javascript" src="/js/materialize.min.js")
+        script(type="text/javascript" src="/js/common.js")
+        script.
+            document.addEventListener('DOMContentLoaded', function () {
+                M.FloatingActionButton.init(document.querySelectorAll('.fixed-action-btn'));
+
+                const btn = document.getElementById('btn');
+                const chat = document.getElementById('chat');
+
+                btn.onclick = function() {
+                    const query = (document.getElementById('compute').value || '');
+
+                    const me = createElt('p', null, 'col s12 right-align', null, chat);
+                    createElt('span', 'me', 'grey-text', null, me);
+                    createElt('br', null, null, null, me);
+                    createElt('span', query, 'grey-text text-darken-4', null, me);
+
+                    askFor('/chat/update?query=' + query, function(err, data) {
+                        if (err) {
+                            console.error(err);
+                        } else {
+                            const me = createElt('p', null, 'col s12 left-align', null, chat);
+                            createElt('span', 'Bobby', 'grey-text', null, me);
+                            createElt('br', null, null, null, me);
+                            createElt('span', data.value, 'grey-text text-darken-4', null, me);
+                        }
+                    });
+                }
+            });

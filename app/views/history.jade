@@ -1,0 +1,73 @@
+doctype html
+html(lang='en')
+    head
+        meta(http-equiv='Content-Type', content='text/html; charset=UTF-8')
+        // Meta, title, CSS, favicons, etc.
+        meta(charset='utf-8')
+        meta(http-equiv='X-UA-Compatible', content='IE=edge')
+        meta(name='viewport', content='width=device-width, initial-scale=1')
+        title My Platform
+        link(href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet")
+        link(type="text/css" rel="stylesheet" href="/css/materialize.min.css"  media="screen,projection")
+        meta(name='viewport', content='width=device-width, initial-scale=1')
+    body.grey.lighten-5
+        main.row.valign-wrapper(style='min-height: 100vh')
+            .col.s12
+                .row
+                    .col.s12.m10.offset-m1.xl6.offset-xl3
+                        h4.col.s12.grey-text.text-darken-4 History
+                        #history.col.s12
+                .row
+                    .col.s12
+                        .container
+                            .divider
+                .row
+                    .col.s12.center-align
+                        a#btn.btn.btn-large.waves-effect.waves-light Flush
+
+            .fixed-action-btn
+                a#menu.btn-floating.btn-large.cyan(href='/')
+                    i.large.material-icons menu
+
+
+        script(type="text/javascript" src="/js/materialize.min.js")
+        script(type="text/javascript" src="/js/common.js")
+        script.
+            document.addEventListener('DOMContentLoaded', function () {
+                M.FloatingActionButton.init(document.querySelectorAll('.fixed-action-btn'));
+
+                const btn = document.getElementById('btn');
+                const history = document.getElementById('history');
+                btn.classList.add('disabled');
+
+                btn.onclick = function() {
+                    btn.classList.add('disabled');
+                    askFor('/history/flush?query=flush', function(err, data) {
+                        if (err) {
+                            console.error(err);
+                        } else {
+                            while (history.firstChild) {
+                                history.removeChild(history.firstChild);
+                            }
+                            data.value.forEach(function(elt) {
+                                createElt('p', elt, 'grey-text text-darken-4', null, history);
+                            });
+                            btn.classList.remove('disabled');
+                        }
+                    });
+                }
+
+                askFor('/history/update?query=get', function (err, data) {
+                    if (err) {
+                        console.error(err);
+                    } else {
+                        while (history.firstChild) {
+                            history.removeChild(history.firstChild);
+                        }
+                        data.value.forEach(function (elt) {
+                            createElt('p', elt, 'grey-text text-darken-4', null, history);
+                        });
+                        btn.classList.remove('disabled');
+                    }
+                });
+            });

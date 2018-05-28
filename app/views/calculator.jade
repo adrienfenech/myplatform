@@ -1,0 +1,50 @@
+doctype html
+html(lang='en')
+    head
+        meta(http-equiv='Content-Type', content='text/html; charset=UTF-8')
+        // Meta, title, CSS, favicons, etc.
+        meta(charset='utf-8')
+        meta(http-equiv='X-UA-Compatible', content='IE=edge')
+        meta(name='viewport', content='width=device-width, initial-scale=1')
+        title My Platform
+        link(href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet")
+        link(type="text/css" rel="stylesheet" href="/css/materialize.min.css"  media="screen,projection")
+        meta(name='viewport', content='width=device-width, initial-scale=1')
+    body.grey.lighten-5
+        main.row.valign-wrapper(style='min-height: 100vh')
+            .col.s12
+                .col.s12.m10.offset-m1.xl6.offset-xl3.valign-wrapper
+                    .input-field.col.s12
+                        input#compute(type='text')
+                        label(for='compute') What we gonna compute ?
+                    a#btn.btn.waves-effect.waves-light
+                        i.material-icons gamepad
+                .col.s12.m10.offset-m1.xl6.offset-xl3
+                    h4#answer.grey-text.text-darken-4 Answer:
+
+            .fixed-action-btn
+                a#menu.btn-floating.btn-large.cyan(href='/')
+                    i.large.material-icons menu
+
+
+        script(type="text/javascript" src="/js/materialize.min.js")
+        script(type="text/javascript" src="/js/common.js")
+        script.
+            document.addEventListener('DOMContentLoaded', function () {
+                M.FloatingActionButton.init(document.querySelectorAll('.fixed-action-btn'));
+
+                const btn = document.getElementById('btn');
+
+                btn.onclick = function() {
+                    btn.classList.add('disabled');
+                    const query = (document.getElementById('compute').value || '');
+                    askFor('/calculator/update?query=' + query, function(err, data) {
+                        if (err) {
+                            console.error(err);
+                        } else {
+                            document.getElementById('answer').innerHTML = query + ' = ' + data.value
+                        }
+                        btn.classList.remove('disabled');
+                    });
+                }
+            });

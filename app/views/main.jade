@@ -1,0 +1,78 @@
+doctype html
+html(lang='en')
+    head
+        meta(http-equiv='Content-Type', content='text/html; charset=UTF-8')
+        // Meta, title, CSS, favicons, etc.
+        meta(charset='utf-8')
+        meta(http-equiv='X-UA-Compatible', content='IE=edge')
+        meta(name='viewport', content='width=device-width, initial-scale=1')
+        title My Platform
+        link(href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet")
+        link(type="text/css" rel="stylesheet" href="/css/materialize.min.css"  media="screen,projection")
+        meta(name='viewport', content='width=device-width, initial-scale=1')
+    body.grey.lighten-5
+        main.row.valign-wrapper(style='min-height: 100vh')
+            .col.s12
+                .col.s12.m6.xl3
+                    .col.s12.valign-wrapper.card-panel.green.lighten-3(style='min-height: 42vh;')
+                        .col.s12
+                            .row.center-align
+                                i.material-icons.large.grey-text.text-darken-4 gamepad
+                            .row.center-align
+                                a.btn.btn-large.no-capital.waves-effect.waves-large(href='/calculator') Calculator
+                            .row.center-align
+                                .col.s12
+                                    .divider.grey.darken-4
+                            .row.center-align
+                                p Compute any operation with any number at anytime...
+                .col.s12.m6.xl3
+                    .col.s12.valign-wrapper.card-panel.orange.lighten-3(style='min-height: 42vh;')
+                        .col.s12
+                            .row.center-align
+                                i.material-icons.large.grey-text.text-darken-4 watch
+                            .row.center-align
+                                a.btn.btn-large.no-capital.waves-effect.waves-large(href='/time') Times
+                            .row.center-align
+                                .col.s12
+                                    .divider.grey.darken-4
+                            .row.center-align
+                                p Get the current time of the most famous cities in the world (New York, Sydney, Singapore, Hyères-les-Palmiers, ...)
+                .col.s12.m6.xl3
+                    .col.s12.valign-wrapper.card-panel.cyan.lighten-3(style='min-height: 42vh;')
+                        .col.s12
+                            .row.center-align
+                                i.material-icons.large.grey-text.text-darken-4 whatshot
+                            .row.center-align
+                                a.btn.btn-large.no-capital.waves-effect.waves-large(href='/chat') Chat
+                            .row.center-align
+                                .col.s12
+                                    .divider.grey.darken-4
+                            .row.center-align
+                                p Chat with our unique and experimental IA
+                .col.s12.m6.xl3
+                    .col.s12.valign-wrapper.card-panel.purple.lighten-3(style='min-height: 42vh;')
+                        .col.s12
+                            .row.center-align
+                                i.material-icons.large.grey-text.text-darken-4 history
+                            .row.center-align
+                                a.btn.btn-large.no-capital.waves-effect.waves-large(href='/history') History
+                            .row.center-align
+                                .col.s12
+                                    .divider.grey.darken-4
+                            .row.center-align
+                                p Check what you did on the platform lastly
+            .fixed-action-btn
+                a#menu.btn-floating.btn-large.cyan(href='/')
+                    i.large.material-icons menu
+
+            #taptarget.tap-target.cyan.lighten-1(data-target='menu')
+                .tap-target-content
+                    h5 Menu
+                    p Use this button to go back to the main menu
+        script(type="text/javascript" src="/js/materialize.min.js")
+        script.
+            document.addEventListener('DOMContentLoaded', function () {
+                M.FloatingActionButton.init(document.querySelectorAll('.fixed-action-btn'));
+                const instance = M.TapTarget.init(document.getElementById('taptarget'));
+                setTimeout(function() { (M.TapTarget.getInstance(document.getElementById('taptarget'))).open(); }, 2000)
+            });

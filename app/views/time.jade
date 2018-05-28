@@ -1,0 +1,61 @@
+doctype html
+html(lang='en')
+    head
+        meta(http-equiv='Content-Type', content='text/html; charset=UTF-8')
+        // Meta, title, CSS, favicons, etc.
+        meta(charset='utf-8')
+        meta(http-equiv='X-UA-Compatible', content='IE=edge')
+        meta(name='viewport', content='width=device-width, initial-scale=1')
+        title My Platform
+        link(href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet")
+        link(type="text/css" rel="stylesheet" href="/css/materialize.min.css"  media="screen,projection")
+        meta(name='viewport', content='width=device-width, initial-scale=1')
+    body.grey.lighten-5
+        main.row.valign-wrapper(style='min-height: 100vh')
+            .col.s12
+                .col.s12.m6.xl3
+                    .card-panel.col.s12.center-align
+                        h3.grey-text.text-darken-4 New York
+                        p#ny
+                .col.s12.m6.xl3
+                    .card-panel.col.s12.center-align
+                        h3.grey-text.text-darken-4 Sydney
+                        p#sydney
+                .col.s12.m6.xl3
+                    .card-panel.col.s12.center-align
+                        h3.grey-text.text-darken-4 Singapore
+                        p#singapore
+                .col.s12.m6.xl3
+                    .card-panel.col.s12.center-align
+                        h3.grey-text.text-darken-4 Hyères-les-Palmiers
+                        p#hlp
+                .col.s12.center-align
+                    a#btn.btn.btn-large.waves-effect.waves-light Update
+
+            .fixed-action-btn
+                a#menu.btn-floating.btn-large.cyan(href='/')
+                    i.large.material-icons menu
+
+
+        script(type="text/javascript" src="/js/materialize.min.js")
+        script(type="text/javascript" src="/js/common.js")
+        script.
+            document.addEventListener('DOMContentLoaded', function () {
+                M.FloatingActionButton.init(document.querySelectorAll('.fixed-action-btn'));
+
+                const btn = document.getElementById('btn');
+
+                btn.onclick = function() {
+                    btn.classList.add('disabled');
+                    askFor('/time/update', function(err, data) {
+                        if (err) {
+                            console.error(err);
+                        } else {
+                            data.value.forEach(function(elt) {
+                                document.getElementById(elt.id).innerHTML = (new Date(elt.time)).toLocaleString();
+                            });
+                        }
+                        btn.classList.remove('disabled');
+                    });
+                }
+            });

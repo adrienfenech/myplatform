@@ -1,0 +1,32 @@
+{
+  "name": "MyPlatform",
+  "version": "0.1.0",
+  "description": "My Platform",
+  "author": "Adrien Fenech <adrien.fenech@estimeo.com>",
+  "main": "server.js",
+  "scripts": {
+    "production": "gulp",
+    "development": "gulp",
+    "test": "mocha **/**.spec.js",
+    "doc": "jsdoc **/**.js"
+  },
+  "devDependencies": {
+    "mocha": "^4.0.1",
+    "chai": "^4.1.2"
+  },
+  "dependencies": {
+    "ms-manager": "^0.1.0",
+
+    "express": "^4.13.3",
+    "body-parser": "^1.15.2",
+
+    "jade": "^1.11.0",
+    "i18n": "^0.8.3",
+
+    "gulp": "^3.9.1",
+    "gulp-load-plugins": "^1.5.0",
+    "gulp-express": "^0.3.5",
+    "run-sequence": "^2.2.1",
+    "del": "^3.0.0"
+  }
+}
