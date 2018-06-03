@@ -1,6 +1,6 @@
 {
   "name": "MyPlatform",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "My Platform",
   "author": "Adrien Fenech <adrien.fenech@estimeo.com>",
   "main": "server.js",
