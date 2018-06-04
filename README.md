@@ -214,6 +214,18 @@ docker stop imagename
 docker rm imagename
 ```
 
+# Overview
+
+During the next steps, we will try to automatize some of our operations. Currently, we are working like the following:
+
+1. [M]		We configure our Environment
+2. [M] 		We create the new feature
+3. [M] 		We commit / push it (On a ***dev*** branch of course ;) )
+5. [M] 		We build the environment, and test our project with the new feature
+6. [M] 		We notify Slack (or whatever) if everything is good (or not).
+7. [M] 		If everything is good, we pull the new feature on a remote server
+8. [M] 		We restart your project 
+
 ## App => _Dockerized_ App
 
 > From A to DA
@@ -439,12 +451,14 @@ $ ./
 ```
 
 > You can use anything to communicate between the services, but if you don't know how to start, I provide you way to do it with [**ms-manager**](https://www.npmjs.com/package/ms-manager) (It is an npm package designed for this tutorial, based on the [**Hydra**](https://www.npmjs.com/package/hydra) project). 
+> Documentation and APIs at [https://github.com/adrienfenech/ms-manager](https://github.com/adrienfenech/ms-manager)
 
-### Hint
+> A Micro-Service is working like a server, it is waiting for something, in order to process it and optionally send back a response.
 
-A Micro-Service is working like a server, it is waiting for something, in order to process it and optionally send back a response. 
 
-The basic architecture is the following:
+### Let's do it !
+ 
+ Create a new **Github** demo project. The architecture should be the following:
 ```
 $ ./ms-something
 		| Dockerfile		## The container configuration
@@ -454,30 +468,247 @@ $ ./ms-something
 		| ...				## Other configuration or optional files (like package.json or micro-service configuration)
 ```
 
-If you use the provided package to communicate between the services, your **ms.js** should look like the following:
+#### *package.json*
+
+Nothing to say, simply copy past:
+
+```json
+{  
+  "name": "ms-demo",  
+  "description": "[MYPLATFORM][MICROSERVICE] Micro service for **myplatform** project, dedicated to nothing in particular, only a demo",  
+  "main": "ms.js",  
+  "scripts": {  
+    "start": "node ms",  
+  "test": "mocha **.spec.js"  
+  },  
+  "devDependencies": {  
+    "mocha": "^4.0.1",  
+  "chai": "^4.1.2"  
+  },  
+  "dependencies": {  
+    "ms-manager": "^0.1.0"  
+  },  
+  "repository": {  
+    "type": "git"  
+  },
+  "author": "Adrien Fenech",  
+  "license": "ISC"  
+}
+```
+
+#### *ms.js* (part 1)
+
+The `ms.js` file is here to launch our micro-service. It will only contains the following code:
 
 ```js
-'use strict';
+'use strict';  
   
 /**  
- * Load configuration file and initialize Hydra. */
-let config = require(`./config/config.json`) || {};
-config['hydra']['redis']['url'] = process.env.REDIS_PORT + '/0';
-
-const MM = require('ms-manager');
+ * Load configuration file and initialize Hydra. 
+ * */
+const MM = require('ms-manager');  
+let config = require(`./config/config.json`) || {};  
+  
+config['hydra']['redis']['url'] = process.env.REDIS_PORT + '/0';  
 MM.init(config, (err, serviceInfo) => {  
     if (err) {  
         console.error(err);  
-  } else {
-	  console.log(serviceInfo);
-	  /**
-	  * Subscribe to the different messages
-	  */
-  }
+	} else {  
+        /**  
+		 * Our micro-service is now up. * We can start to register our message listeners 
+		 * */  
+		console.log('#Micro-service UP#');  
+	}
 });
 ```
 
-You should also update your **package.json** with the following **redis** entry:
+As you can see, only one file is required:  `config/config.json`. 
+You can checkout the documentation of [**ms-manager**](https://www.npmjs.com/package/ms-manager) to see how to configure properly your micro-service.
+
+
+#### *manager.js*
+
+The `manager.js` file is the core process of our micro-service. It will contains the following code:
+
+```js
+module.exports = {  
+    requestSyncMsg: function(msg) {  
+    /**  
+	 * We return synchronously the message processed. 
+	 * */
+	 return processMsg(msg);  
+  },  
+  
+	requestAsyncMsg: function(msg, callback) {  
+		/**  
+		 * We use setTimeout in order to simulate an synchronously processing. 
+		 * */
+		setTimeout(() => {  
+            const result = processMsg(msg);  
+			/**  
+			 * We return asynchronously the message processed. 
+			 * */
+			if (result instanceof Error) {  
+                return callback(result);  
+			} else {  
+                return callback(null, result);  
+			}  
+		}, 1000 + Math.random() * 3000);  
+	}
+};
+
+
+/**
+ * Stupid Message processing
+ */ 
+function processMsg(msg) {  
+    switch (msg) {  
+		case 'error': return new Error('This is an error.');  
+		case 'hello':  
+        case 'Hello': return 'Hello there !';  
+		case 'ciao':  
+        case 'Ciao':return 'pepito';  
+		default: switch (Math.round(Math.random() * 10)) {  
+            case 0: return 'Check presence !';  
+			case 1: return 'On dit "pain au chocolat".';  
+			case 2: return 'Champion !';  
+			case 3: return 'Retourne bosser !';  
+			case 4: return 'Elle est où la petite Julie pendant le bonbardement ?';  
+			case 5: return 'Hoooooooooooooooooooooooo !';  
+			case 6: return 'Je crois que dans la saison 8, Winterfell et les Stark...';  
+			case 7: return 'De toute façon, ils ne peuvent pas faire redoubler toute une promo !';  
+			case 8: return 'Ca va être tout noir !';  
+			case 9: return 'J\'ai pas envie de te parler.';  
+			default: return 'Hasta la vista, Baby.';  
+		}
+	}
+}
+```
+
+We can see here two different method to process our message: One is synchronous and the other one asynchronous.
+
+#### *ms.js* (part 2)
+
+We can update our `ms.js` with the following code in order to process correctly our message:
+
+```js
+'use strict'
+const MM = require('ms-manager');
+const _M = require('./manager');
+
+...
+
+  
+    /**  
+	 * Our micro-service is now up. * We can start to register our message listeners 
+	 */
+	 console.log('#Micro-service UP#');
+	
+	/**  
+	 * We subscribe to "demo-message-sync". 
+	 * When we will receive this message, we will process it (synchronously) 
+	 * and send back the answer 
+	 */
+	 MM.subscribe('demo-message-sync', (bdy, msg) => {  
+	    const result = _M.requestSyncMsg(bdy);  
+		if (result instanceof Error) {  
+	        return msg.replyErr(result);  
+		} else {  
+	        return msg.reply(result);  
+		}  
+	});  
+  
+	/**  
+	 * We subscribe to "demo-message-async". 
+	 * When we will receive this message, we will process it (asynchronously) 
+	 * and send back the answer 
+	 */
+	 MM.subscribe('demo-message-async', (bdy, msg) => {  
+	    const result = _M.requestAsyncMsg(bdy, (err, result) => {  
+        if (err) {  
+            return msg.replyErr(err);  
+		} else {  
+            return msg.reply(result);  
+		}  
+    });
+
+...
+```
+
+Congratulations ! You have your first micro-service which is OP ;)
+
+#### `manager.spec.js` (Let's test it !)
+
+Let's add a final file to our project: `manager.spec.js`. Which gonna contain the following code:
+
+```js
+'use strict';  
+  
+const expect = require('chai').expect;  
+const DM = require('./manager');  
+  
+before(function () {  
+    console.log('===============================================');  
+	console.log('|| The following tests are only relevant     ||');  
+	console.log('|| for this demo and do not cover all cases. ||');  
+	console.log('===============================================');  
+});  
+  
+describe('Test suit 1', () => {  
+    describe('"requestSyncMsg" Method', () => {  
+        it('should exist', () => {  
+            expect(DM.requestSyncMsg).to.be.a('function');  
+		});  
+  
+		it('should return an error for "error" msg', () => {  
+            expect(DM.requestSyncMsg('error')).to.be.a('error');  
+		});  
+  
+		it('should return "Hello there !" for "hello" msg', () => {  
+            expect(DM.requestSyncMsg('hello')).to.equal('Hello there !');  
+		});  
+  
+		it('should return "Hello there !" for "Hello" msg', () => {  
+            expect(DM.requestSyncMsg('Hello')).to.equal('Hello there !');  
+		});  
+	});  
+  
+	describe('"requestAsyncMsg" Method', () => {  
+        it('should exist', () => {  
+            expect(DM.requestAsyncMsg).to.be.a('function');  
+		});  
+  
+		it('should return an error for "error" msg', (done) => {  
+            DM.requestAsyncMsg('error', (err) => {  
+                expect(err).to.be.a('error');  
+				done();  
+			});  
+		}).timeout(5000);  
+  
+		it('should return "Hello there !" for "hello" msg', (done) => {  
+            DM.requestAsyncMsg('hello', (err, result) => {  
+                expect(result).to.equal('Hello there !');  
+				done();  
+			});  
+		}).timeout(5000);  
+  
+		it('should return "Hello there !" for "Hello" msg', (done) => {  
+            DM.requestAsyncMsg('Hello', (err, result) => {  
+                expect(result).to.equal('Hello there !');  
+				done();  
+			});  
+		}).timeout(5000);  
+	});  
+});
+```
+
+You can then test your micro-service process with a simple `npm run test` !
+
+#### Connect it with your *myplatform* project !
+
+You can now update your code of `myplatform/routes/chat.js` in order to use this micro-service !
+
+You should also update your **docker-compose.yml** with the following **redis** entry:
 
 ```
 redis:  
@@ -488,19 +719,60 @@ redis:
 		- "6379"
 ```
 
-## Micro-Service _Dockerized_ Tested App with Reverse Proxy => Continuous Remote Tested Micro-Service _Dockerized_ App with Reverse Proxy
+> PS: Don't forget to link your entry with the redis one !
 
-> From MSDTARP to CRTMSDARP   --  WTF ?!
+## Testing with a CI
 
-Next episode :)
+It's finally time to test our different micro-service automatically.
 
+> In real life, if you use a micro-service architecture, you will not work on them for months. In that case, it is really important to **write test**, **document your code** and **explain how your micro-service is working** and to what kind of service it is answering.
 
+First, you need to create an account on [Circle Ci](https://circleci.com). You should link your github account in order to test your project on the platform.
 
-## Continuous Remote Tested Micro-Service _Dockerized_ App with Reverse Proxy =>  [...] with Collaboration Tools
+Then, you need to **add a project** to your Circle Ci dashboard. Follow the tutorial in order to create your ***circleci*** configuration file for your project.
 
-> From CRTMSDARP  to CRTMSDARPCT
+> In this specific version of Circle Ci, you do not have to specify which branch to test. But in a real project, it is a good way to explain when and how you should test a project.
 
-Next episode :)
+When, you are ready, just try a `git push origin dev`. You should see a new build / test on your Circle Ci dashboard. ***Congrats !*** 
+
+Don't forget to add your little [Circle Ci Status Badge](https://circleci.com/docs/2.0/status-badges/) to your Readme !
+
+## Add Notifications To Collaboration Tools
+
+> It is always better to follow how a project is evolving. Thanks to great people (and APIs !), all of our tools can communicate.
+
+Most of teams are working with collaboration tools, mainly to communicate and share easily resources and work. Slack is one of these tools. Let's try to notify all of our teammates when one of our new features is a success !
+
+Follow the guide: [https://circleci.com/blog/slack-integration/](https://circleci.com/blog/slack-integration/).
+
+## Deploy Time !
+
+> Before to start this part, remember our first talk: It is **NOT SAFE** to deploy our work directly on a production server. 
+
+We can resume our current work like the following:
+
+1. [A]		Docker configures our Environment
+2. [M] 		We create the new feature
+3. [M] 		We commit / push it (On a ***dev*** branch of course ;) )
+5. [A] 		Circle CI builds the environment, and tests our project with the new feature
+6. [A] 		Circle CI notifies Slack (or whatever) if everything is good (or not).
+7. [M] 		If everything is good, we pull the new feature on a remote server
+8. [M] 		We restart your project 
+
+Even if we did a great job, it could be nice to automatically pull and restart our application in your remote server.
+
+In order to do that, we need to use the [**deploy**](https://circleci.com/docs/2.0/deployment-integrations/) step of Circle CI.
+
+You have a Server, AWS or an Heroku App ? Perfect, you can start to play with it !
+
+## Sandbox
+
+You can also make your application stronger with the following points:
+
+* Scale your critical micro-services with Docker
+* Notify Slack (or whatever) if a crash or something went wrong
+* Monitor your server / micro-services (Hello [***Inside App***](http://insideapp.io/) !)
+* Auto-create ticket in case of *error* with notification and attribution
 
 ## DevOps Ideas
 
