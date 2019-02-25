@@ -407,7 +407,7 @@ This test part is **important** for the following so try do create at least 10 t
 
 We start to have a complex application. May be it is time to create a new architecture to handle all the new content. It is also a good way to spot all the breaking points that we didn't see.
 
-> It is always hard and long to change a project's architecture, but it is worst to do it when we reaching a breaking point. So let's do it now.
+> It is always hard and long to change a project's architecture, but it is worst to do it when we reach a breaking point. So let's do it now.
 
 At the end of this part, you should have 6 unique projects:
 
@@ -455,76 +455,175 @@ $ ./
 
 > A Micro-Service is working like a server, it is waiting for something, in order to process it and optionally send back a response.
 
+### Micro-service template
 
-### Let's do it !
- 
- Create a new **Github** demo project. The architecture should be the following:
+It's time to do a little break in the project. Because we are starting a micro-service architecture, we will define the "template" of a service.
+In order to achieve this, let's just create a new **Github** project named `ms-node-template`. We will assume that this project will be a good start to every node based micro-service.
+
+The architecture will be:
 ```
-$ ./ms-something
-		| Dockerfile		## The container configuration
+$ ./ms-basic-template
+		| config/
+			| config.json	## Configuration for the communication system
+		| .circleci/
+			| config.yaml	## Configuration for circleci
+		| Dockerfile		## The container's configuration
 		| ms.js  			## The entry point of the Micro-Service 
 		| manager.js		## The logic of the Micro-Service
 		| manager.spec.js	## The test suit of the Micro-Service
-		| ...				## Other configuration or optional files (like package.json or micro-service configuration)
+		| package.json		## Configuration of the node service
 ```
 
-#### *package.json*
+Let's fulfill everything:
 
-Nothing to say, simply copy past:
+#### config/config.json
+```
+{
 
-```json
-{  
-  "name": "ms-demo",  
-  "description": "[MYPLATFORM][MICROSERVICE] Micro service for **myplatform** project, dedicated to nothing in particular, only a demo",  
-  "main": "ms.js",  
-  "scripts": {  
-    "start": "node ms",  
-  "test": "mocha **.spec.js"  
-  },  
-  "devDependencies": {  
-    "mocha": "^4.0.1",  
-  "chai": "^4.1.2"  
-  },  
-  "dependencies": {  
-    "ms-manager": "^0.1.0"  
-  },  
-  "repository": {  
-    "type": "git"  
-  },
-  "author": "Adrien Fenech",  
-  "license": "ISC"  
+	"environment": "development",
+	"hydra": {
+		"serviceName": "ms-node-template-service",
+		"serviceIP": "",
+		"servicePort": 9000,
+		"serviceType": "computation",
+		"serviceDescription": "Service description",
+		"redis": {
+			"url": "redis://127.0.0.1:6379/0"
+		}
+	}
+}
+```
+Do not forget to change
+* serviceName with the actual name of the new service
+* serviceDescription with the appropriate description
+
+#### .circleci/config.yaml
+```
+# Javascript Node CircleCI 2.0 configuration file
+#
+# Check https://circleci.com/docs/2.0/language-javascript/ for more details
+#
+version: 2
+jobs:
+	test:
+		docker:
+			# specify the version you desire here
+			- image: circleci/node:9.2
+
+		working_directory: ~/server
+		steps:
+			# Checkout code
+			- checkout
+			
+			# install all dependencies
+			- run: yarn install
+			
+			# run tests suit
+			- run: yarn test
+			
+			# One more time ?
+			- run: echo 'DONE'
+
+workflows:
+	version: 2
+	tagged-build:
+		jobs:
+			- test
+```
+
+#### Dockerfile
+> Checkout the Dockerfile you created before ;)
+
+#### ms.js
+```
+'use strict';
+
+/**
+ * Load configuration file and initialize Hydra.
+ */
+const MM = require('ms-manager');
+const manager = require('./manager');
+let config = require(`./config/config.json`) || {};
+config['hydra']['redis']['url'] = process.env.REDIS_PORT + '/0';
+
+MM.init(config, (err, serviceInfo) => {
+	if (err) {
+		console.error(err);
+	} else {
+	/**
+	 * Our micro-service is now up.
+	 * We can start to register our message listeners
+	 */
+	console.log('#Micro-service UP#');
+
+	/**
+	 * TODO
+	 */
+)}
+```
+
+#### manager.js
+```
+module.exports = {
+	/**
+	 * foo function should always return 'bar'
+	 */
+	foo: function() {
+		return 'bar';
+	}
 }
 ```
 
-#### *ms.js* (part 1)
+#### manager.spec.js
+```
+'use strict';
 
-The `ms.js` file is here to launch our micro-service. It will only contains the following code:
-
-```js
-'use strict';  
+const expect = require('chai').expect;
+const manager = require('./manager');
   
-/**  
- * Load configuration file and initialize Hydra. 
- * */
-const MM = require('ms-manager');  
-let config = require(`./config/config.json`) || {};  
-  
-config['hydra']['redis']['url'] = process.env.REDIS_PORT + '/0';  
-MM.init(config, (err, serviceInfo) => {  
-    if (err) {  
-        console.error(err);  
-	} else {  
-        /**  
-		 * Our micro-service is now up. * We can start to register our message listeners 
-		 * */  
-		console.log('#Micro-service UP#');  
-	}
-});
+describe('"foo" Method', () => {
+	it('should return "bar"', () => {
+		expect(manager.foo()).to.equal('bar');
+	});
+}
 ```
 
-As you can see, only one file is required:  `config/config.json`. 
-You can checkout the documentation of [**ms-manager**](https://www.npmjs.com/package/ms-manager) to see how to configure properly your micro-service.
+#### package.json
+```
+{
+	"name": "ms-node-template",
+	"description": "Service description",
+	"main": "ms.js",
+	"version": "0.1.0",
+	"scripts": {
+		"start": "node manager",
+		"test": "mocha **.spec.js"
+	},
+	"devDependencies": {
+		"mocha": "4.0.1",
+		"chai": "4.1.2"
+	},
+	"dependencies": {
+		"ms-manager": "^0.1.0"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/<user>/ms-node-template.git"
+	},
+	"author": "<name>",
+	"license": "ISC",
+	"bugs": {
+		"url": "https://github.com/<user>/ms-node-template/issues"
+	},
+	"homepage": "https://github.com/<user>/ms-node-template#readme"
+}
+```
 
+Again, you will have to change the appropriate fields depending on the project.
+
+### Let's continue
+ 
+ Create a new **Github** demo project, based on our template !
 
 #### *manager.js*
 
@@ -765,13 +864,16 @@ In order to do that, we need to use the [**deploy**](https://circleci.com/docs/2
 
 You have a Server, AWS or an Heroku App ? Perfect, you can start to play with it !
 
+
+// TODO: Add docker registry and proof that we can build server with only download of docker services pre-built
+
 ## Sandbox
 
 You can also make your application stronger with the following points:
 
 * Scale your critical micro-services with Docker
 * Notify Slack (or whatever) if a crash or something went wrong
-* Monitor your server / micro-services (Hello [***Inside App***](http://insideapp.io/) !)
+* Monitor your server / micro-services (Hello [***Inside App***](http://insideapp.io/), *MTI PLIC * !)
 * Auto-create ticket in case of *error* with notification and attribution
 
 ## DevOps Ideas
