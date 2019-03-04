@@ -927,7 +927,7 @@ Docker (and generally containers) are really good tools for DevOps. But there ar
 ## Basic Architecture
 
 
-![Alt text](/basic_architecture_mono_server.png?raw=true "Basic Architecture")
+![Alt text](/basic_archi_mono_server.png?raw=true "Basic Architecture")
 
 ___
 > *Adrien Fenech*
