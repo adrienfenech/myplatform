@@ -923,5 +923,11 @@ Docker (and generally containers) are really good tools for DevOps. But there ar
 
 > Most of theses tools have been created in order to work which each others. That's why DevOps process is powerful and we can apply a lot of automation !
 
+
+## Basic Architecture
+
+
+![Alt text](/basic_architecture_mono_server.png?raw=true "Basic Architecture")
+
 ___
 > *Adrien Fenech*
