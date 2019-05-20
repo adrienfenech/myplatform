@@ -95,7 +95,7 @@ CMD [ "arg_1", "arg_2", "arg_3"]
 
 ### Docker compose
 
-***docker-compose*** lets you build and run multiple containers as you can do with a script. The goal is to clean how you organize your application(s), and use a "configuration" file instead of script. Check the following example showing how a project which uses `nginx` (Reverse proxy), 3 `node` (Server logic) and `mongo` (Database) is built:
+***docker-compose*** lets you build and run multiple containers as you can do with a script. The goal is to clean how you organize your application(s), and use a "configuration" file instead of script. Check the following example showing how a project which uses `nginx` (Reverse proxy), `node` (Server logic) and `mongo` (Database) is built:
 
 ```bash
 
@@ -109,16 +109,13 @@ nginx:
 
 	#We specify that our nginx container depends on 3 nodes containers
     links:
-        - node1:node1
-        - node2:node2
-        - node3:node3
-
+        - node
 	#We expose the port 80 of the container to the port 80 of or machine 
     ports:
         - "80:80"
 
-#Node (1) container
-node1:
+#Node container
+node:
 
 	#The Dockerfile of our node is in "./server" folder
     build: ./server
@@ -134,24 +131,6 @@ node1:
         - mongo
     
     #We expose the port 8080 of the container
-    ports:
-        - "8080"
-#Node (2) container
-node2:
-    build: ./server
-    restart: always
-    env_file: variables.env
-    links:
-        - mongo
-    ports:
-        - "8080"
-#Node (3) container
-node3:
-    build: ./server
-    restart: always
-    env_file: variables.env
-    links:
-        - mongo
     ports:
         - "8080"
 #Mongo container
